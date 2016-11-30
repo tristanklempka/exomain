@@ -2,7 +2,7 @@
 import cv2
 import numpy as np
 
-def preprocess_image(image, bckground_image):
+def remove_background(image, bckground_image):
     #rgb to hsv
     image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     bckground_image_hsv = cv2.cvtColor(bckground_image, cv2.COLOR_BGR2HSV)
@@ -44,3 +44,43 @@ def skeletonize(image):
             done = True
 
     return skel
+
+def get_largest_contour(image):
+	contours, hierarchy = cv2.findContours(image,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	#select only the largest countour
+	areaArray = []
+	for i, c in enumerate(contours):
+    area = cv2.contourArea(c)
+    areaArray.append(area)
+
+	#sort the array by area
+	sorted_countours = sorted(zip(areaArray, contours), key=lambda x: x[0], reverse=True)
+
+	return sorted_countours[0][1] #largest countour
+
+def detect_fingers(defects):
+	FINGER_DEFECT_LENGHT = 25000
+	fingers_detected = 0
+	if defects.any() : 
+		  for i in range(defects.shape[0]):
+		      s,e,f,d = defects[i,0]
+		      start = tuple(contour_selected[s][0])
+		      end = tuple(contour_selected[e][0])
+		      far = tuple(contour_selected[f][0])
+		      if d > FINGER_DEFECT_LENGHT :
+		          cv2.line(hand_image,end,far,[128,128,128],2)
+		          cv2.circle(hand_image,far,5,[128,128,128],-1)
+		          fingers_detected += 1
+	
+	return fingers_detected
+		    
+
+
+
+
+
+
+
+
+
+
